@@ -1,7 +1,8 @@
 from typing import Optional
 
-from sqlalchemy import String, Integer, BigInteger, Boolean
+from sqlalchemy import String, Integer, BigInteger, Boolean, ForeignKey
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
 
 class Base(DeclarativeBase):
     pass
@@ -23,3 +24,10 @@ class User(Base):
     position : Mapped[Optional[str]] = mapped_column(String(40))
 
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+class Pin(Base):
+    __tablename__ = "pin"
+
+    code: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id : Mapped[int] = mapped_column(Integer, ForeignKey('user.id'), nullable=False)
+    is_used : Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
