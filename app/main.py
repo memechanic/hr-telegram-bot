@@ -1,13 +1,11 @@
 import asyncio
 import logging
 
-from aiogram import F, Bot, Dispatcher, types
-from aiogram.filters.command import Command
+from aiogram import F, Bot, Dispatcher
 from config_reader import config
 
 from app.commands import COMMANDS
-
-bot = Bot(token=config.bot_token.get_secret_value())
+from handler import auth
 
 dp = Dispatcher()
 
@@ -15,16 +13,11 @@ dp = Dispatcher()
 async def on_startup(bot: Bot):
     await bot.set_my_commands(COMMANDS)
 
-
-@dp.message(F.text, Command("start"))
-async def cmd_start_handler(message: types.Message):
-    await message.answer(f"Hello, {message.from_user.full_name}!")
-
-@dp.message(Command("dice"))
-async def cmd_dice_handler(message: types.Message):
-    await message.answer_dice(emoji="🎲")
-
 async def main():
+    bot = Bot(token=config.bot_token.get_secret_value())
+
+    dp.include_router(auth.router)
+
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
