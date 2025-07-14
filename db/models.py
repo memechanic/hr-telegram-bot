@@ -29,5 +29,4 @@ class Pin(Base):
     __tablename__ = "pin"
 
     code: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id : Mapped[int] = mapped_column(Integer, ForeignKey('user.id'), nullable=False)
     is_used : Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
