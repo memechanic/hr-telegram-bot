@@ -1,8 +1,7 @@
 from typing import Optional
-
-from sqlalchemy import String, Integer, BigInteger, Boolean, ForeignKey
+from datetime import datetime
+from sqlalchemy import String, Integer, BigInteger, Boolean, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-
 
 class Base(DeclarativeBase):
     pass
@@ -30,3 +29,4 @@ class Pin(Base):
 
     code: Mapped[int] = mapped_column(Integer, primary_key=True)
     is_used : Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
