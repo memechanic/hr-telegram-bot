@@ -25,8 +25,8 @@ async def create_deep_link(bot: Bot) -> (str, int):
     else:
         return None, None
 
-async def is_pincode_right(payload: str) -> bool:
-    pincode = int(decode_payload(payload))
+async def is_pincode_right(payload: str, encoded: bool = False) -> bool:
+    pincode = int(decode_payload(payload)) if encoded else int(payload)
     result = await get_pincode(pincode)
 
     if result and not result.is_used:
