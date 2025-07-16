@@ -1,9 +1,10 @@
+import logging
 from random import randint
 
 from aiogram import Bot
 from aiogram.utils.deep_linking import create_start_link, decode_payload
 
-from db.requests import add_pincode, get_pincode, update_used_pincode
+from db.requests.pincode import add_pincode, get_pincode, update_used_pincode
 
 MIN_PINCODE = 1000
 MAX_PINCODE = 9999
@@ -26,7 +27,11 @@ async def create_deep_link(bot: Bot) -> (str, int):
         return None, None
 
 async def is_pincode_right(payload: str, encoded: bool = False) -> bool:
-    pincode = int(decode_payload(payload)) if encoded else int(payload)
+    try:
+        pincode = int(decode_payload(payload)) if encoded else int(payload)
+    except Exception as e:
+        logging.error(e)
+        return False
     result = await get_pincode(pincode)
 
     if result and not result.is_used:
