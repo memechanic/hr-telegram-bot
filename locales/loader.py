@@ -12,7 +12,7 @@ def _load(locale: str) -> Dict[str, Any]:
     with open(path, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
-def _reload_locale():
+def reload_locale():
     _load.cache_clear()
 
 def t(key: str, lang: str = 'ru', **kwargs) -> str:

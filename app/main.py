@@ -8,11 +8,13 @@ from config_reader import config
 from handlers import auth, support
 from handlers.admin import users
 from middlewares import AuthMiddleware, AdminMiddleware
+from locales.loader import reload_locale
 
 dp = Dispatcher()
 
 @dp.startup()
 async def on_startup(bot: Bot):
+    reload_locale()
     await bot.set_my_commands(COMMANDS)
 
 async def main():
