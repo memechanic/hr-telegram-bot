@@ -16,6 +16,8 @@ class User(Base):
 
     first_name : Mapped[str] = mapped_column(String(30))
     last_name : Mapped[str] = mapped_column(String(30))
+    patronym: Mapped[Optional[str]] = mapped_column(String(30))
+
     phone_number : Mapped[str] = mapped_column(String(12), unique=True)
     email : Mapped[str] = mapped_column(String(120), unique=True)
 
