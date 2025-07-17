@@ -2,6 +2,7 @@ from typing import Optional
 from datetime import datetime
 from sqlalchemy import String, Integer, BigInteger, Boolean, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from locales.loader import t
 
 class Base(DeclarativeBase):
     pass
@@ -23,6 +24,8 @@ class User(Base):
 
     department : Mapped[Optional[str]] = mapped_column(String(40))
     position : Mapped[Optional[str]] = mapped_column(String(40))
+
+    status : Mapped[Optional[str]] = mapped_column(String(10), default=t('service.status.pending'), nullable=False) # pending | approved | declined
 
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
