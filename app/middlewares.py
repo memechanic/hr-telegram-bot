@@ -30,8 +30,10 @@ class CheckUserMiddleware(BaseMiddleware):
 
         if self.who == 'user' and await is_user(user_id):
             await bot.set_my_commands(USER_COMMANDS)
+            result = await handler(event, data)
 
         elif self.who == 'admin' and await is_admin(user_id):
             await bot.set_my_commands(ADMIN_COMMANDS)
+            result = await handler(event, data)
 
-        return await handler(event, data)
+        return result
