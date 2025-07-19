@@ -25,9 +25,13 @@ class User(Base):
     department : Mapped[Optional[str]] = mapped_column(String(40))
     position : Mapped[Optional[str]] = mapped_column(String(40))
 
-    status : Mapped[Optional[str]] = mapped_column(String(10), default=t('service.status.pending'), nullable=False) # pending | approved | declined
+    # pending | accept | declined
+    status : Mapped[Optional[str]] = mapped_column(String(10), default=t('service.status.pending'), nullable=False)
 
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    def __str__(self):
+        return f"{self.tg_id}: {self.first_name} {self.last_name}"
 
 class Pin(Base):
     __tablename__ = "pin"
