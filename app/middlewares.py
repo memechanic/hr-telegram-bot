@@ -1,17 +1,17 @@
 import logging
 from typing import Callable, Dict, Any, Awaitable
 
-from aiogram import BaseMiddleware
+from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject
-from mako.testing.helpers import result_lines
 
-from service.users import is_user, is_admin, get_user
+from app.commands import COMMANDS, USER_COMMANDS, ADMIN_COMMANDS
+from service.users import is_user, is_admin
 
 logger = logging.getLogger(__name__)
 
 class CheckUserMiddleware(BaseMiddleware):
 
-    def __init__(self, who: str):
+    def __init__(self, who: str = ""):
         self.who = who
 
     async def __call__(
@@ -20,14 +20,19 @@ class CheckUserMiddleware(BaseMiddleware):
             event: TelegramObject,
             data: Dict[str, Any],
     ) -> Any:
-        user = data['event_from_user']
-        check = await get_user(user.id)
         result = None
+        user_id = data['event_from_user'].id
+        bot: Bot = data['bot']
 
-        if self.who == 'user' and check:
-            result = await handler(user, data)
-        elif self.who == 'admin' and check and check.is_admin:
-            result = await handler(user, data)
+        logger.debug(f"LoadUserMiddleware: event from user id={user_id}")
 
-        logger.debug(f"LoadUserMiddleware: event from user id={user.id}")
-        return result
+        if self.who == "":
+            await bot.set_my_commands(COMMANDS)
+
+        elif self.who == 'user' and await is_user(user_id):
+            await bot.set_my_commands(USER_COMMANDS)
+
+        elif self.who == 'admin' and await is_admin(user_id):
+            await bot.set_my_commands(ADMIN_COMMANDS)
+
+        return await handler(event, data)

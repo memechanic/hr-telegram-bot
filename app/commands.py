@@ -1,6 +1,13 @@
 from aiogram.types import BotCommand
-
+from locales.loader import t
 COMMANDS = [
-    BotCommand(command="start", description="Приветствие и начало работы"),
-    BotCommand(command="link", description="Создать новую ссылку для сотрудника")
+    BotCommand(command="start", description=t("service.commands.start")),
+]
+
+USER_COMMANDS = COMMANDS + [
+    BotCommand(command="help", description=t("service.commands.help")),
+]
+
+ADMIN_COMMANDS = USER_COMMANDS + [
+    BotCommand(command="link", description=t("service.commands.link")),
 ]
