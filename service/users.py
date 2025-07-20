@@ -41,9 +41,9 @@ async def add_pending_user(data: dict) -> bool:
     result = await add_user(user)
     return result
 
-async def update_user_status(user_id: int, status: str) -> bool:
-    logger.debug('update_user_status')
-    return await update_user(user_id, status = status)
+async def update_user_info(user_id: int, **kwargs) -> bool:
+    logger.debug('update_user_info')
+    return await update_user(user_id, **kwargs)
 
 async def get_user_data(tg_id: int) -> dict:
     logger.debug('get_user_data')
