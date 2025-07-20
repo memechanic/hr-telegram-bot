@@ -1,9 +1,7 @@
 import logging
-from dataclasses import asdict
 
 from aiogram import F
 from aiogram import Router, Bot
-from aiogram.client import bot
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
@@ -35,7 +33,8 @@ async def add_user_request(bot: Bot, user_id: int):
 
     admin_tg_id = await get_admin_tg_id()
     user = await get_user_data(user_id)
-
+    if not user:
+        return
     buttons = {
         "accept:" + str(user_id): t('admin.users.buttons.accept'),
         "decline:" + str(user_id): t('admin.users.buttons.decline'),
