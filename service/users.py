@@ -10,8 +10,9 @@ async def is_user(tg_id: int) -> bool:
     logger.debug('is_user')
 
     result = await get_user(tg_id)
-    status = result.status
-    return bool(result) and status != t('service.status.declined')
+    if result:
+        return result.status != t('service.status.declined')
+    else: return False
 
 async def is_admin(tg_id: int) -> bool:
     logger.debug('is_admin')
@@ -45,10 +46,12 @@ async def update_user_info(user_id: int, **kwargs) -> bool:
     logger.debug('update_user_info')
     return await update_user(user_id, **kwargs)
 
-async def get_user_data(tg_id: int) -> dict:
+async def get_user_data(tg_id: int) -> dict | None:
     logger.debug('get_user_data')
 
     user = await get_user(tg_id)
+    if not user:
+        return None
     data = {
         "id": user.id,
         "tg_id": user.tg_id,
