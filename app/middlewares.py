@@ -4,7 +4,6 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import TelegramObject
 
-from app.commands import COMMANDS, USER_COMMANDS, ADMIN_COMMANDS
 from service.users import is_user, is_admin
 
 logger = logging.getLogger(__name__)
@@ -26,14 +25,13 @@ class CheckUserMiddleware(BaseMiddleware):
 
         logger.debug(f"LoadUserMiddleware: event from user id={user_id}")
 
-        await bot.set_my_commands(COMMANDS)
+        flag_is_user = await is_user(user_id)
+        flag_is_admin = await is_admin(user_id)
 
-        if self.who == 'user' and await is_user(user_id):
-            await bot.set_my_commands(USER_COMMANDS)
+        if self.who == 'user' and flag_is_user:
             result = await handler(event, data)
 
-        elif self.who == 'admin' and await is_admin(user_id):
-            await bot.set_my_commands(ADMIN_COMMANDS)
+        elif self.who == 'admin' and flag_is_admin:
             result = await handler(event, data)
 
         return result

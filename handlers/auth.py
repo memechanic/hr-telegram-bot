@@ -2,17 +2,18 @@ import logging
 
 from aiogram import F, Bot
 from aiogram import Router
-from aiogram.filters import CommandObject, CommandStart, Command
+from aiogram.filters import CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, BotCommandScopeChat
 
+from handlers.admin.users import add_user_request
+from keyboards.keyboard_builder import get_inline_keyboard, get_reply_keyboard
 from locales.loader import t
 from service.pincode import is_pincode_right
+from service.users import add_pending_user, is_user, is_admin
 from service.validators import is_text, is_phone_number, is_email
-from service.users import add_pending_user
-from keyboards.keyboard_builder import get_inline_keyboard, get_reply_keyboard
-from handlers.admin.users import add_user_request
+from app.commands import COMMANDS, USER_COMMANDS, ADMIN_COMMANDS
 
 router = Router()
 
@@ -28,8 +29,11 @@ class UserAuth(StatesGroup):
 
 # авторизация через дип-линк
 @router.message(CommandStart(deep_link=True))
-async def start_link(message: Message, command: CommandObject, state: FSMContext):
+async def start_link(message: Message, bot: Bot, command: CommandObject, state: FSMContext):
     logger.debug('start_link')
+
+    user_id = message.from_user.id
+    await bot.set_my_commands(COMMANDS, BotCommandScopeChat(chat_id=user_id))
 
     pincode_raw = command.args
     success = await is_pincode_right(pincode_raw, encoded=True)
@@ -42,13 +46,26 @@ async def start_link(message: Message, command: CommandObject, state: FSMContext
 
 # авторизация посредством ввода пин-кода пользователем
 @router.message(CommandStart(deep_link=False))
-async def start_cmd(message: Message, state: FSMContext):
+async def start_cmd(message: Message, bot: Bot, state: FSMContext):
     logger.debug('start_cmd')
+    user_id = message.from_user.id
 
-    await message.answer(text=t('auth.start'))
-    await state.set_state(UserAuth.pincode)
+    if not await is_user(user_id):
+        await bot.set_my_commands(COMMANDS, BotCommandScopeChat(chat_id=user_id))
+        await message.answer(text=t('auth.start'))
+        await state.set_state(UserAuth.pincode)
 
-async def authorized_user(message: Message):
+    else: await authorized_user(message, bot)
+
+async def authorized_user(message: Message, bot: Bot):
+    user_id = message.from_user.id
+
+    if await is_user(user_id) and not await is_admin(user_id):
+        await bot.set_my_commands(USER_COMMANDS, BotCommandScopeChat(chat_id=user_id))
+
+    elif await is_admin(user_id):
+        await bot.set_my_commands(ADMIN_COMMANDS, BotCommandScopeChat(chat_id=user_id))
+
     await message.answer(text=t('support.help'))
 
 @router.message(UserAuth.pincode, F.text)
@@ -129,7 +146,13 @@ async def confirm(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     data['tg_id'] = callback.from_user.id
     data['tg_username'] = callback.from_user.username
-    await add_pending_user(data)
+
+    result = await add_pending_user(data)
+    if not result:
+        await callback.message.answer(text=t('auth.add_user_error'))
+        await callback.answer()
+        return
+
     await add_user_request(callback.bot, data['tg_id'])
     await state.clear()
     await callback.message.answer(text=t('auth.auth_confirmed'))
@@ -151,10 +174,7 @@ async def change(callback: CallbackQuery, state: FSMContext):
 
 @router.message(UserAuth.change, F.text)
 async def change(message: Message, state: FSMContext):
-    pass
 
-@router.message(Command('status'))
-async def get_status(message: Message, state: FSMContext):
     pass
 
 """
