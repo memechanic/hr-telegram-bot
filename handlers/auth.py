@@ -26,6 +26,7 @@ class UserAuth(StatesGroup):
     email = State()
     confirm = State()
     change = State()
+    change_field = State()
 
 # авторизация через дип-линк
 @router.message(CommandStart(deep_link=True))
@@ -174,11 +175,53 @@ async def change(callback: CallbackQuery, state: FSMContext):
 
 @router.message(UserAuth.change, F.text)
 async def change(message: Message, state: FSMContext):
+    logger.debug('change')
 
-    pass
+    field = message.text
+    if field not in (t('auth.buttons.full_name'), t('auth.buttons.email'), t('auth.buttons.phone_number')):
+        await message.answer(text=t('auth.field_error'))
+        return
 
-"""
-# ### План
-# Придумать как изменить данные по одному, либо сделать все заново
+    await state.update_data(field=field)
+    await state.set_state(UserAuth.change_field)
+    await message.answer(text=t('auth.change_field', field=field))
 
-"""
+@router.message(UserAuth.change_field, F.text)
+async def change_field(message: Message, state: FSMContext):
+    logger.debug('change_field')
+
+    new_field = message.text.strip()
+    field = await state.get_value('field')
+
+    if field == t('auth.buttons.full_name'):
+        first_name, last_name, patronym = "-", "-", "-"
+
+        full_name = new_field.split()
+        if not (len(full_name) in (2, 3) and all([is_text(p) for p in full_name])):
+            await message.answer(text=t('auth.validation_error'))
+            return
+
+        if len(full_name) == 2:
+            first_name, last_name = full_name
+        else:
+            first_name, last_name, patronym = full_name
+
+        await state.update_data(first_name=first_name, last_name=last_name, patronym=patronym)
+
+    elif field == t('auth.buttons.email'):
+        email = new_field.strip()
+        if not is_email(email):
+            await message.answer(text=t('auth.validation_error'))
+            return
+
+        await state.update_data(email=email)
+
+    elif field == t('auth.buttons.phone_number'):
+        phone_number = new_field.strip()
+        if not is_phone_number(phone_number):
+            await message.answer(text=t('auth.validation_error'))
+            return
+
+        await state.update_data(phone_number=phone_number)
+
+    await get_confirm(message, state)
