@@ -1,6 +1,6 @@
 import logging
 
-from db.requests.users import get_user, add_user, get_admin, update_user
+from db.requests.users import get_user, add_user, get_admin, update_user, delete_user
 from db.models import User
 from locales.loader import t
 
@@ -41,6 +41,10 @@ async def add_pending_user(data: dict) -> bool:
     )
     result = await add_user(user)
     return result
+
+async def delete_declined_user(tg_id: int) -> bool:
+    logger.debug('delete_user')
+    return await delete_user(tg_id, 'status', t("service.status.declined"))
 
 async def update_user_info(user_id: int, **kwargs) -> bool:
     logger.debug('update_user_info')

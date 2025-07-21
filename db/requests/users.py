@@ -1,6 +1,7 @@
 import logging
 
-from sqlalchemy import insert, update, select
+from sqlalchemy import update, select, delete
+from sqlalchemy.sql.expression import text
 
 from db.models import User
 from db.setup_session import get_async_session
@@ -29,6 +30,23 @@ async def add_user(user: User) -> bool:
         else:
             return True
 
+async def delete_user(tg_id: int, field = None, value = None) -> bool:
+    logger.debug("delete_user")
+
+    async with get_async_session() as session:
+        try:
+            stmt = ''
+            if field is not None and value is not None:
+                stmt = text(f"delete from user where {field} = {value}")
+            else:
+                stmt = delete(User).where(User.tg_id == tg_id)
+
+            await session.execute(stmt)
+        except Exception as e:
+            logger.error(e)
+            return False
+        else:
+            return True
 
 async def update_user(tg_id: int, **kwargs) -> bool:
     logger.debug("update_user")

@@ -12,14 +12,16 @@ from aiogram.fsm.context import FSMContext
 from keyboards.keyboard_builder import get_inline_keyboard
 from locales.loader import t
 from service.pincode import create_deep_link
-from service.users import get_admin_tg_id, get_user_data, update_user_info
+from service.users import get_admin_tg_id, get_user_data, update_user_info, delete_declined_user
 
 router = Router()
 
 logger = logging.Logger(__name__)
 
+
 class UserWork(StatesGroup):
     accepted = State()
+
 
 """
 /add_user
@@ -27,6 +29,7 @@ class UserWork(StatesGroup):
 /edit_user
 
 """
+
 
 async def add_user_request(bot: Bot, user_id: int):
     logger.debug('add_user_request')
@@ -46,6 +49,7 @@ async def add_user_request(bot: Bot, user_id: int):
         reply_markup=keyboard,
     )
 
+
 @router.callback_query(F.data.startswith("accept:"))
 async def accept_user(callback: CallbackQuery, state: FSMContext):
     logger.debug('accept_user')
@@ -58,6 +62,7 @@ async def accept_user(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer(text=t("admin.users.add_work_info"))
     await state.update_data(user_id=user_id)
     await state.set_state(UserWork.accepted)
+
 
 @router.message(UserWork.accepted, F.text)
 async def add_work_info(message: Message, state: FSMContext):
@@ -88,6 +93,7 @@ async def decline_user(callback: CallbackQuery):
     await update_user_info(user_id, status=t("service.status.declined"))
     await callback.answer(text=t("admin.users.decline_user"), show_alert=True)
     await notify_user(callback.bot, user_id, t("service.status.declined"))
+    await delete_declined_user(user_id)
 
 async def notify_user(bot: Bot, user_id: int, status: str):
     logger.debug('notify_user')
@@ -96,6 +102,7 @@ async def notify_user(bot: Bot, user_id: int, status: str):
         user_id,
         text=text
     )
+
 
 @router.message(Command("link"))
 async def create_invite_link_cmd(message: Message, bot: Bot):
