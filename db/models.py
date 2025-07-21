@@ -57,11 +57,11 @@ class Media(Base):
     __tablename__ = "media"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    file_id: Mapped[str] = mapped_column(String(200), nullable=True)
+    file_id: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
 
-    path: Mapped[str] = mapped_column(String(500), nullable=True)
-    filename: Mapped[str] = mapped_column(String(200), nullable=True)
-    type : Mapped[str] = mapped_column(String(20), nullable=True)
+    path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    filename: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+    type : Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
 
     tag: Mapped[str] = mapped_column(String(50), nullable=False)
 
