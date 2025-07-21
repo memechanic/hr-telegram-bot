@@ -8,7 +8,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery, BotCommandScopeChat
 
 from handlers.admin.users import add_user_request
-from keyboards.keyboard_builder import get_inline_keyboard, get_reply_keyboard
+from keyboards.auth import get_confirm_keyboard, change_field_keyboard, remove_keyboard
 from locales.loader import t
 from service.pincode import is_pincode_right
 from service.users import add_pending_user, is_user, is_admin
@@ -131,13 +131,10 @@ async def get_confirm(message: Message, state: FSMContext):
 
     await state.set_state(UserAuth.confirm)
     data = await state.get_data()
-    buttons = {
-        'confirm': t('auth.buttons.confirm'),
-        'change': t('auth.buttons.change'),
-    }
+
     await message.answer(
         text=t('auth.confirm', **data),
-        reply_markup=get_inline_keyboard(buttons)
+        reply_markup=get_confirm_keyboard
     )
 
 @router.callback_query(UserAuth.confirm, F.data == "confirm")
@@ -163,14 +160,8 @@ async def confirm(callback: CallbackQuery, state: FSMContext):
 async def change(callback: CallbackQuery, state: FSMContext):
     logger.debug('change')
 
-    buttons = [
-        t('auth.buttons.full_name'),
-        t('auth.buttons.email'),
-        t('auth.buttons.phone_number')
-    ]
-    keyboard = get_reply_keyboard(buttons)
     await state.set_state(UserAuth.change)
-    await callback.message.answer(t('auth.change'), reply_markup=keyboard)
+    await callback.message.answer(t('auth.change'), reply_markup=change_field_keyboard)
     await callback.answer()
 
 @router.message(UserAuth.change, F.text)
@@ -184,7 +175,7 @@ async def change(message: Message, state: FSMContext):
 
     await state.update_data(field=field)
     await state.set_state(UserAuth.change_field)
-    await message.answer(text=t('auth.change_field', field=field))
+    await message.answer(text=t('auth.change_field', field=field), reply_markup=remove_keyboard)
 
 @router.message(UserAuth.change_field, F.text)
 async def change_field(message: Message, state: FSMContext):
