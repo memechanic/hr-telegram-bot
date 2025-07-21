@@ -1,19 +1,18 @@
 import logging
 
-from aiogram import F, Bot
-from aiogram import Router
+from aiogram import F, Bot, Router
 from aiogram.filters import CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import Message, CallbackQuery, BotCommandScopeChat
 
+from app.commands import COMMANDS, USER_COMMANDS, ADMIN_COMMANDS
 from handlers.admin.users import add_user_request
 from keyboards.auth import get_confirm_keyboard, change_field_keyboard, remove_keyboard
 from locales.loader import t
 from service.pincode import is_pincode_right
 from service.users import add_pending_user, is_user, is_admin
 from service.validators import is_text, is_phone_number, is_email
-from app.commands import COMMANDS, USER_COMMANDS, ADMIN_COMMANDS
 
 router = Router()
 

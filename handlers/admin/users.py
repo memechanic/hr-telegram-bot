@@ -1,13 +1,11 @@
 import logging
 
-from aiogram import F
-from aiogram import Router, Bot
+from aiogram import F, Router, Bot
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
-from aiogram.types import Message, CallbackQuery
-
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import Message, CallbackQuery
 
 from keyboards.keyboard_builder import get_inline_keyboard
 from locales.loader import t
