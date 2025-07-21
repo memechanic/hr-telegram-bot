@@ -1,11 +1,19 @@
-from typing import Optional
 from datetime import datetime
-from sqlalchemy import String, Integer, BigInteger, Boolean, DateTime
+from enum import Enum as PyEnum
+from typing import Optional
+
+from sqlalchemy import String, Integer, BigInteger, Boolean, DateTime, Enum
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from locales.loader import t
+
 
 class Base(DeclarativeBase):
     pass
+
+class StatusEnum(PyEnum):
+    pending = 0
+    accept = 1
+    declined = -1
+
 
 class User(Base):
     __tablename__ = "user"
@@ -26,7 +34,7 @@ class User(Base):
     position : Mapped[Optional[str]] = mapped_column(String(40))
 
     # pending | accept | declined
-    status : Mapped[Optional[str]] = mapped_column(String(10), default=t('service.status.pending'), nullable=False)
+    status : Mapped[int] = mapped_column(Integer, default=StatusEnum.pending.value, nullable=False)
 
     is_admin: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
@@ -39,3 +47,11 @@ class Pin(Base):
     code: Mapped[int] = mapped_column(Integer, primary_key=True)
     is_used : Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+
+"""class Media(Base):
+    __tablename__ = "media"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    file_id: Mapped[str] = mapped_column(String(200), nullable=True)
+
+    path: Mapped[str] = mapped_column(String(500), nullable=True)"""

@@ -85,11 +85,6 @@ admin:
       /link - создать новый пин-код с ссылкой-приглашением для нового сотрудника
 
 service:
-  status:
-    pending: "pending"
-    accept: "accept"
-    declined: "declined"
-
   commands:
     start: "Приветствие и начало работы"
     help: "Список команд и описание бота"
