@@ -48,10 +48,26 @@ class Pin(Base):
     is_used : Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
 
-"""class Media(Base):
+class SourceTypeEnum(PyEnum):
+    telegram = "telegram"
+    local = "local"
+    url = "url"
+
+class Media(Base):
     __tablename__ = "media"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     file_id: Mapped[str] = mapped_column(String(200), nullable=True)
 
-    path: Mapped[str] = mapped_column(String(500), nullable=True)"""
+    path: Mapped[str] = mapped_column(String(500), nullable=True)
+    filename: Mapped[str] = mapped_column(String(200), nullable=True)
+    type : Mapped[str] = mapped_column(String(20), nullable=True)
+
+    tag: Mapped[str] = mapped_column(String(50), nullable=False)
+
+    source_type: Mapped[SourceTypeEnum]
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now())
+
+    def __str__(self):
+        return f"{self.filename}({self.file_id})\ntag:{self.tag}\npath:{self.path}\nsource_type:{self.source_type}"
