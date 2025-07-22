@@ -5,10 +5,10 @@ from aiogram import Bot, Dispatcher, Router
 
 from app.commands import COMMANDS
 from config_reader import config
-from handlers import auth, support
-from handlers.admin import users
-from middlewares import CheckUserMiddleware
+from handlers import auth, support, info
+from handlers.admin import users, content
 from locales.loader import reload_locale
+from middlewares import CheckUserMiddleware
 
 dp = Dispatcher()
 
@@ -27,12 +27,14 @@ async def main():
     # Роутеры для авторизированных пользователей
     users_router = Router()
     users_router.include_router(support.router)
+    users_router.include_router(info.router)
 
     users_router.message.middleware(CheckUserMiddleware("user"))
 
     # Роутеры для администрации
     admin_router = Router()
     admin_router.include_router(users.router)
+    admin_router.include_router(content.router)
 
     admin_router.message.middleware(CheckUserMiddleware("admin"))
 
