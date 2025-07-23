@@ -39,7 +39,7 @@ async def delete_media_by_id(media_id: int) -> bool:
     return bool(path)
 
 async def add_media_document(doc: PhotoSize | Video | Document, tag: str, bot: Bot) -> bool:
-    logger.debug("add_media_data")
+    logger.debug("add_media_document")
 
     filename: str
     doc_type: str
