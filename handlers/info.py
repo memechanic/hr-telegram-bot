@@ -53,3 +53,16 @@ async def cafeteria(message: Message):
     else:
         menu = t('info.cafeteria.menu')
         await message.answer(text=t('info.cafeteria.text', working_hours=working_hours, menu=menu))
+
+@router.message(Command('structure'))
+async def structure(message: Message):
+    logger.debug("structure")
+
+    files = await get_media_input_files('structure')
+    if files['applications']:
+        album = MediaGroupBuilder(caption=t('info.structure.application'))
+        for application in files['applications']:
+            album.add_document(application)
+        await message.answer_media_group(media=album.build())
+    else:
+        await message.answer(text=t('info.structure.text'))
