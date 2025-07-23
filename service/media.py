@@ -1,16 +1,14 @@
 import logging
-from os import remove as rm_file
 from datetime import datetime
+from os import remove as rm_file
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 
 from aiogram import Bot
-from aiogram.types import PhotoSize, Video, Document, Message, FSInputFile
-from aiogram.utils.media_group import MediaGroupBuilder
+from aiogram.types import PhotoSize, Video, Document, FSInputFile
 
 from db.models import SourceTypeEnum, Media
-from db.requests.media import add_media, get_media, delete_media
-from locales.loader import t
+from db.requests.media import add_media, get_media, delete_media, update_media
 
 logger = logging.getLogger(__name__)
 
@@ -53,18 +51,22 @@ async def add_media_document(doc: PhotoSize | Video | Document, tag: str, bot: B
         filename = doc.file_name + doc.mime_type.split('/')[-1]
         doc_type = doc.mime_type
 
-    path = _MEDIA_PATH / tag / filename
     data = {
         'file_id': doc.file_id,
-        'filename': filename,
-        'path': str(path),
         'type': doc_type,
         'tag': tag,
         'source_type': SourceTypeEnum.telegram
     }
     media = Media(**data)
+    media_id = await add_media(media)
 
-    result = await add_media(media)
+    new_filename = f"{str(media_id)}_{filename}"
+    path = _MEDIA_PATH / tag / new_filename
+    update_data = {
+        'filename': new_filename,
+        'path': str(path),
+    }
+    result = await update_media(media_id, **update_data)
     if result:
         await bot.download(media.file_id, path)
     return result
@@ -90,41 +92,33 @@ async def get_media_by_tag(tag: str) -> List[Media]:
     result = await get_media(w)
     return result
 
-async def send_media(message: Message, module: str, tag: str):
+async def get_media_input_files(tag: str) -> Dict[str, List[FSInputFile]] | None:
     logger.debug("send_media")
 
     media = await get_media_by_tag(tag)
-    photos = list(filter(lambda p: p.type.startswith('image'), media))
-    videos = list(filter(lambda p: p.type.startswith('video'), media))
-    applications = list(filter(lambda p: p.type.startswith('application'), media))
+    photos_raw = list(filter(lambda p: p.type.startswith('image'), media))
+    videos_raw = list(filter(lambda p: p.type.startswith('video'), media))
+    applications_raw = list(filter(lambda p: p.type.startswith('application'), media))
 
-    if len(photos) == 0 and len(videos) == 0 and len(applications) == 0:
-        await message.answer(text=t(f'{module}.{tag}.text'))
-        return
+    files = {
+        'photos': [],
+        'videos': [],
+        'applications': [],
+    }
 
-    if len(photos) == 1:
-        await message.answer_photo(photo=FSInputFile(photos[0].path), caption=t(f'{module}.{tag}.photo'))
+    if len(photos_raw) == 0 and len(videos_raw) == 0 and len(applications_raw) == 0:
+        return files
 
-    elif len(photos) > 1:
-        album_builder = MediaGroupBuilder(caption=t(f'{module}.{tag}.photo'))
-        for photo in photos[:10]:
-            album_builder.add_photo(FSInputFile(photo.path))
-        await message.answer_media_group(media=album_builder.build())
+    if len(photos_raw):
+        for photo in photos_raw:
+            files['photos'].append(FSInputFile(photo.path))
 
-    if len(videos) == 1:
-        await message.answer_video(video=FSInputFile(videos[0].path), caption=t(f'{module}.{tag}.video'))
+    if len(videos_raw):
+        for video in videos_raw:
+            files['videos'].append(FSInputFile(video.path))
 
-    elif len(videos) > 1:
-        album_builder = MediaGroupBuilder(caption=t(f'{module}.{tag}.video'))
-        for video in videos[:10]:
-            album_builder.add_video(FSInputFile(video.path))
-        await message.answer_media_group(media=album_builder.build())
+    if len(applications_raw):
+        for app in applications_raw:
+            files['applications'].append(FSInputFile(app.path))
 
-    if len(applications) == 1:
-        await message.answer_document(text=t(f'{module}.{tag}.document'), document=FSInputFile(applications[0].path))
-
-    elif len(applications) > 1:
-        album_builder = MediaGroupBuilder(caption=t(f'{module}.{tag}.document'))
-        for application in applications[:10]:
-            album_builder.add_document(FSInputFile(application.path))
-        await message.answer_media_group(media=album_builder.build())
+    return files
