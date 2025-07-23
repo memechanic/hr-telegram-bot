@@ -23,7 +23,7 @@ def reload_locale():
     _load.cache_clear()
 
 def t(key: str, lang: str = 'ru', **kwargs) -> str:
-    logger.debug('t')
+    logger.debug(f't({key})')
 
     data = _load(lang)
 
