@@ -67,7 +67,7 @@ async def content_add(callback: CallbackQuery, callback_data: MediaTagList, stat
 
     await callback.answer()
 
-@router.message(ContentState.add)
+@router.message(ContentState.add, F.content_type.in_({'photo', 'video', 'document'}))
 async def content_add_result(message: Message, bot: Bot, state: FSMContext):
     logger.debug("content_add_result")
 
@@ -85,12 +85,22 @@ async def content_add_result(message: Message, bot: Bot, state: FSMContext):
     else:
         await message.answer(text=t('admin.content.error'))
 
+@router.message(ContentState.add, F.text)
+async def content_add_cancel(message: Message, state: FSMContext):
+    logger.debug("content_add_cancel")
+
+    await state.set_state(ContentState.main)
+    await message.answer(
+        text=t('admin.content.main'),
+        reply_markup=main_content_keyboard,
+    )
+
 @router.callback_query(F.data == "tag_list")
 async def content_tag_list(callback: CallbackQuery, state: FSMContext):
     logger.debug("content_tag_list")
 
     await state.set_state(ContentState.tag_list)
-    await state.update_data(number=0)
+
     keyboard = await get_tag_keyboard()
     await callback.message.edit_text(text=t('admin.content.tag_list'),)
     await callback.message.edit_reply_markup(reply_markup=keyboard)
@@ -116,6 +126,7 @@ async def show_media_info(callback: CallbackQuery, callback_data: MediaTagList, 
         return
 
     old_number = await state.get_value('number')
+    if old_number is None: old_number = 0
     new_number = max(0, min(old_number + callback_data.number, len(media) - 1))
 
     info = await get_media_dict(media[new_number])
