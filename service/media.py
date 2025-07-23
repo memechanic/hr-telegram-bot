@@ -48,7 +48,7 @@ async def add_media_document(doc: PhotoSize | Video | Document, tag: str, bot: B
         filename = f"{tag}-{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.jpeg"
         doc_type = 'image/jpeg'
     else:
-        filename = doc.file_name + doc.mime_type.split('/')[-1]
+        filename = doc.file_name
         doc_type = doc.mime_type
 
     data = {
