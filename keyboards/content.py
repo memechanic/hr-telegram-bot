@@ -24,7 +24,7 @@ back_content_keyboard = get_inline_keyboard(
     resize_keyboard=True,
 )
 
-def get_media_list_keyboard(tag:str, number: int = None) -> InlineKeyboardMarkup:
+def get_media_list_keyboard(tag: str, number: int = None) -> InlineKeyboardMarkup:
     keyboard = get_inline_keyboard(
         data = {
             MediaTagList(tag=tag, number=-1).pack(): t('admin.content.buttons.prev'),
@@ -32,15 +32,35 @@ def get_media_list_keyboard(tag:str, number: int = None) -> InlineKeyboardMarkup
 
             MediaTagList(tag=tag, number=number, action='add').pack(): t('admin.content.buttons.add'),
             MediaTagList(tag=tag, number=number, action='delete').pack(): t('admin.content.buttons.delete'),
-            MediaTagList(tag=tag, number=number, action='edit').pack(): t('admin.content.buttons.edit'),
 
             'tag_list': t('admin.content.buttons.back'),
         },
         resize_keyboard=True,
-        adjust=[2, 3, 1]
+        adjust=[2, 2, 1]
     )
     return keyboard
 
+def get_media_empty_keyboard(tag: str):
+    keyboard = get_inline_keyboard(
+        data = {
+            MediaTagList(tag=tag, action='add').pack(): t('admin.content.buttons.add'),
+            'tag_list': t('admin.content.buttons.back'),
+        },
+        resize_keyboard=True,
+        adjust=[1, 1]
+    )
+    return keyboard
+
+def get_delete_keyboard(tag:str, number: int, media_id: int) -> InlineKeyboardMarkup:
+    keyboard = get_inline_keyboard(
+        data = {
+            MediaTagList(tag=tag, number=number, action='delete', id=media_id).pack(): t('admin.content.buttons.delete'),
+            MediaTagList(tag=tag, number=number).pack(): t('admin.content.buttons.cancel'),
+        },
+        resize_keyboard=True,
+        adjust=[1, 1, 1]
+    )
+    return keyboard
 
 async def get_tag_keyboard() -> InlineKeyboardMarkup:
     buttons = await get_media_dirs()

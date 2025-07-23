@@ -7,14 +7,16 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
-from keyboards.content import get_tag_keyboard, main_content_keyboard, back_content_keyboard, get_media_list_keyboard
+from keyboards.content import get_tag_keyboard, main_content_keyboard, back_content_keyboard, get_media_list_keyboard, \
+    get_delete_keyboard, get_media_empty_keyboard
 from locales.loader import t
 from service.callback_data_factory import MediaTagList
-from service.media import get_media_dirs, add_module_dir, add_media_document, get_media_by_tag, get_media_dict
-
-router = Router()
+from service.media import get_media_dirs, add_module_dir, add_media_document, get_media_by_tag, get_media_dict, \
+    delete_media_by_id
 
 logger = logging.getLogger(__name__)
+
+router = Router()
 
 class ContentState(StatesGroup):
     main = State()
@@ -94,22 +96,35 @@ async def content_tag_list(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_reply_markup(reply_markup=keyboard)
     await callback.answer()
 
-@router.callback_query(ContentState.tag_list, MediaTagList.filter())
+@router.callback_query(ContentState.tag_list, MediaTagList.filter(F.action == None))
 async def content_media_list(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
     logger.debug("content_tag")
 
+    await show_media_info(callback, callback_data, state)
+
+async def show_media_info(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
     tag = callback_data.tag
     media = await get_media_by_tag(tag)
 
+    if len(media) == 0:
+        keyboard = get_media_empty_keyboard(tag)
+        await callback.message.edit_text(
+            text=t('admin.content.empty'),
+            reply_markup=keyboard,
+        )
+        await callback.answer()
+        return
+
     old_number = await state.get_value('number')
-    new_number = max(0, min(old_number + callback_data.number, len(media)-1))
+    new_number = max(0, min(old_number + callback_data.number, len(media) - 1))
 
     info = await get_media_dict(media[new_number])
+    await state.update_data(media_id=info['id'])
     keyboard = get_media_list_keyboard(tag)
 
     try:
         await callback.message.edit_text(
-            text=t('admin.content.media_info', **info, number=new_number+1),
+            text=t('admin.content.media_info', **info, number=new_number + 1),
             reply_markup=keyboard,
         )
     except TelegramBadRequest as e:
@@ -117,13 +132,58 @@ async def content_media_list(callback: CallbackQuery, callback_data: MediaTagLis
             pass
         else:
             logger.error(e)
-    else:
+    finally:
         await state.update_data(number=new_number)
         await callback.answer()
 
-@router.callback_query(F.data == "delete")
-async def content_delete(callback: CallbackQuery, state: FSMContext):
+@router.callback_query(ContentState.tag_list, MediaTagList.filter(F.action == "delete"))
+async def content_delete(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
     logger.debug("content_delete")
+
+    tag = callback_data.tag
+    media_id = await state.get_value('media_id')
+    number = await state.get_value('number')
+    keyboard = get_delete_keyboard(tag, number, media_id)
+
+    old_text = callback.message.text
+    new_text = '\n\n'.join([old_text, t('admin.content.delete')])
+
+    await callback.message.edit_text(text=new_text)
+    await callback.message.edit_reply_markup(reply_markup=keyboard)
 
     await state.set_state(ContentState.delete)
     await callback.answer()
+
+@router.callback_query(ContentState.delete, MediaTagList.filter(F.action == "delete"))
+async def content_delete_result(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
+    logger.debug("content_delete_result")
+
+    media_id = callback_data.id
+    result = await delete_media_by_id(media_id)
+    if result:
+        await state.update_data(number=0)
+        await state.set_state(ContentState.tag_list)
+        await show_media_info(callback, callback_data, state)
+
+        await callback.answer(text=t('admin.content.delete_success'), show_alert=True)
+    else:
+        await callback.answer(text=t('admin.content.error'), show_alert=True)
+
+@router.callback_query(ContentState.delete, MediaTagList.filter(F.action == None))
+async def content_delete_cancel(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
+    logger.debug("content_delete_cancel")
+
+    tag = callback_data.tag
+    number = callback_data.number
+    media = await get_media_by_tag(tag)
+
+    info = await get_media_dict(media[number])
+    keyboard = get_media_list_keyboard(tag)
+
+    await callback.message.edit_text(
+        text=t('admin.content.media_info', **info, number=number + 1),
+        reply_markup=keyboard,
+    )
+    await state.set_state(ContentState.tag_list)
+    await callback.answer()
+

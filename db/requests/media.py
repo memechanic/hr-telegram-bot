@@ -1,6 +1,8 @@
 import logging
 from typing import List
 
+from sqlalchemy import select, delete
+
 from db.models import Media
 from db.setup_session import get_async_session
 
@@ -19,11 +21,19 @@ async def add_media(media: Media) -> bool:
         else:
             return True
 
-async def get_media(stmt) -> List[Media]:
+async def get_media(where_clause) -> List[Media]:
     logger.debug("get_media")
 
     async with get_async_session() as session:
-        stmt = stmt
+        stmt = select(Media).where(where_clause)
         result = await session.scalars(stmt)
         media = [m for m in result]
         return media
+
+async def delete_media(where_clause) -> str | None:
+    logger.debug("delete_media")
+    async with get_async_session() as session:
+        stmt = delete(Media).where(where_clause).returning(Media.path)
+        result = await session.scalars(stmt)
+        path = result.first()
+        return path or None

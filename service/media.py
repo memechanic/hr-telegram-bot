@@ -1,4 +1,5 @@
 import logging
+from os import remove as rm_file
 from datetime import datetime
 from pathlib import Path
 from typing import List
@@ -6,10 +7,9 @@ from typing import List
 from aiogram import Bot
 from aiogram.types import PhotoSize, Video, Document, Message, FSInputFile
 from aiogram.utils.media_group import MediaGroupBuilder
-from sqlalchemy import select
 
 from db.models import SourceTypeEnum, Media
-from db.requests.media import add_media, get_media
+from db.requests.media import add_media, get_media, delete_media
 from locales.loader import t
 
 logger = logging.getLogger(__name__)
@@ -33,6 +33,12 @@ async def add_module_dir(name: str) -> bool:
         return False
     else: return True
 
+async def delete_media_by_id(media_id: int) -> bool:
+    logger.debug("delete_media_by_id")
+    w = Media.id == media_id
+    path = await delete_media(w)
+    if path: rm_file(path)
+    return bool(path)
 
 async def add_media_document(doc: PhotoSize | Video | Document, tag: str, bot: Bot) -> bool:
     logger.debug("add_media_data")
@@ -80,8 +86,8 @@ async def get_media_dict(media: Media) -> dict:
 
 async def get_media_by_tag(tag: str) -> List[Media]:
     logger.debug("get_media_by_tag")
-    stmt = select(Media).where(Media.tag == tag)
-    result = await get_media(stmt=stmt)
+    w = Media.tag == tag
+    result = await get_media(w)
     return result
 
 async def send_media(message: Message, module: str, tag: str):

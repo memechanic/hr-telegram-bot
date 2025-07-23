@@ -6,6 +6,7 @@ class MediaTagList(CallbackData, prefix="mtl"):
     tag: str
     number: Optional[int] = 0
     action: Optional[str] = None
+    id: Optional[int] = None
 
 # Для будущего изменения в handlers.admin.users при обработке запросов
 # from enum import Enum
