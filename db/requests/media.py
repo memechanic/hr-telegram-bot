@@ -1,22 +1,36 @@
 import logging
 from typing import List
 
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, update
 
 from db.models import Media
 from db.setup_session import get_async_session
 
 logger = logging.getLogger(__name__)
 
-async def add_media(media: Media) -> bool:
-    logger.debug(f"add_media: {media}")
+async def add_media(media: Media) -> int | None:
+    logger.debug(f"add_media")
 
     async with get_async_session() as session:
         session.add(media)
         try:
             await session.flush()
+            media_id = media.id
         except Exception as e:
             logger.error(f"add_media_error: {e}")
+            return None
+        else:
+            return media_id
+
+async def update_media(media_id: int, **kwargs) -> bool:
+    logger.debug("update_media")
+
+    async with get_async_session() as session:
+        try:
+            stmt = update(Media).where(Media.id == media_id).values(**kwargs)
+            await session.execute(stmt)
+        except Exception as e:
+            logger.error(f"update_media_error: {e}")
             return False
         else:
             return True
