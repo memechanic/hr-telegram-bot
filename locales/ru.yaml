@@ -147,16 +147,15 @@ admin:
     delete: "Вы уверены что хотите удалить? Если да то нажмите удалить еще раз"
     delete_success: "Файл успешно удален!"
 
+    show_error: "Не могу показать этот файл :("
     error: "Что-то пошло не так, попробуйте еще раз:"
 
     media_info: |
       Файл № {number} по тэгу {tag}:
-      id: {id}
-      file_id: {file_id}
-      filename: {filename}
-      type: {type}
-      source_type: {source_type}
-      created_at: {created_at}
+      ID: {id}
+      Имя файла: {filename}
+      Тип: {type}
+      Создан: {created_at}
 
     buttons:
       add: "Добавить"
