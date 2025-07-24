@@ -92,6 +92,12 @@ async def get_media_by_tag(tag: str) -> List[Media]:
     result = await get_media(w)
     return result
 
+async def get_media_by_id(media_id: int) -> Media:
+    logger.debug("get_media_by_id")
+    w = Media.id == media_id
+    result = await get_media(w)
+    return result[0]
+
 async def get_media_input_files(tag: str) -> Dict[str, List[FSInputFile]] | None:
     logger.debug("send_media")
 
