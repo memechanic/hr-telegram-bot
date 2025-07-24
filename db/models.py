@@ -61,7 +61,7 @@ class Media(Base):
 
     path: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     filename: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
-    type : Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    type : Mapped[Optional[str]] = mapped_column(String(128), nullable=True)
 
     tag: Mapped[str] = mapped_column(String(50), nullable=False)
 
