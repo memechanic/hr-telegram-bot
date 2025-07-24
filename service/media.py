@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from os import remove as rm_file
+from os import listdir as get_listdir
 from pathlib import Path
 from typing import List, Dict
 
@@ -14,17 +15,36 @@ logger = logging.getLogger(__name__)
 
 _MEDIA_PATH = Path(__file__).resolve().parent.parent / 'media'
 
-async def get_media_dirs() -> List[str]:
+async def get_media_dirs(module: str = None) -> List[str]:
     logger.debug("get_media_dirs")
-
-    raw = [str(d) for d in _MEDIA_PATH.iterdir()]
-    res = [d[d.rfind('\\')+1:] for d in raw]
+    path = _MEDIA_PATH
+    if module: path = path / module.split('.')[0]
+    res = get_listdir(path)
     return res
+
+async def is_module_has_dirs(module: str):
+    logger.debug("is_module_has_sub")
+    module = module.replace('.', '//')
+    path = _MEDIA_PATH / module
+    files = list(path.iterdir())
+    if len(files) == 0:
+        return False
+    elif all([f.is_dir() for f in files]):
+        return True
+    return False
 
 async def add_module_dir(name: str) -> bool:
     logger.debug("add_module_dir")
 
-    new_module = _MEDIA_PATH / name
+    new_module = Path()
+    tags = name.split('.')
+    if len(tags) == 1:
+        new_module = _MEDIA_PATH / tags[0]
+    elif len(tags) == 2:
+        new_module = _MEDIA_PATH / tags[0]
+        if not new_module.exists(): new_module.mkdir()
+        new_module = new_module / tags[1]
+
     try:new_module.mkdir()
     except Exception as e:
         logger.error(f"add_module_dir: {e}")
@@ -61,6 +81,11 @@ async def add_media_document(doc: PhotoSize | Video | Document, tag: str, bot: B
     media_id = await add_media(media)
 
     new_filename = f"{str(media_id)}_{filename}"
+
+    if '.' in tag:
+        await add_module_dir(tag)
+        tag = tag.replace('.', '//')
+
     path = _MEDIA_PATH / tag / new_filename
     update_data = {
         'filename': new_filename,

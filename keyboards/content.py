@@ -62,12 +62,16 @@ def get_delete_keyboard(tag:str, number: int, media_id: int) -> InlineKeyboardMa
     )
     return keyboard
 
-async def get_tag_keyboard() -> InlineKeyboardMarkup:
-    buttons = await get_media_dirs()
+async def get_tag_keyboard(module: str = None) -> InlineKeyboardMarkup:
+    buttons = await get_media_dirs(module)
 
     data = {'main': t('admin.content.buttons.back'),}
     for b in buttons:
-        data.update({MediaTagList(tag=b).pack(): b})
+        if module is None:
+            data.update({MediaTagList(tag=b).pack(): b})
+        else:
+            tag = f"{module}.{b}"
+            data.update({MediaTagList(tag=tag).pack(): b})
 
     adjust = [1] + [2 for _ in range(len(buttons))]
     keyboard = get_inline_keyboard(

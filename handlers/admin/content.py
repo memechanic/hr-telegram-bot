@@ -1,4 +1,3 @@
-import asyncio
 import logging
 
 from aiogram import Router, F, Bot
@@ -12,8 +11,7 @@ from keyboards.content import get_tag_keyboard, main_content_keyboard, back_cont
     get_delete_keyboard, get_media_empty_keyboard
 from locales.loader import t
 from service.callback_data_factory import MediaTagList
-from service.media import get_media_dirs, add_module_dir, add_media_document, get_media_by_tag, get_media_dict, \
-    delete_media_by_id, get_media_by_id
+from service.media import add_media_document, get_media_by_tag, get_media_dict, delete_media_by_id, is_module_has_dirs
 
 logger = logging.getLogger(__name__)
 
@@ -61,6 +59,11 @@ async def content_info(callback: CallbackQuery, state: FSMContext):
 async def content_tag_list(callback: CallbackQuery, state: FSMContext):
     logger.debug("content_tag_list")
 
+    await show_tag_list(callback, state)
+
+async def show_tag_list(callback: CallbackQuery, state: FSMContext, module: str = None):
+    logger.debug("show_tag_list")
+
     await state.set_state(ContentState.tag_list)
 
     media_msg = await state.get_value('show_media_message')
@@ -68,14 +71,19 @@ async def content_tag_list(callback: CallbackQuery, state: FSMContext):
         await media_msg.delete()
         await state.update_data(show_media_message=None)
 
-    keyboard = await get_tag_keyboard()
-    await callback.message.edit_text(text=t('admin.content.tag_list'),)
+    keyboard = await get_tag_keyboard(module)
+    await callback.message.edit_text(text=t('admin.content.tag_list'), )
     await callback.message.edit_reply_markup(reply_markup=keyboard)
     await callback.answer()
 
 @router.callback_query(ContentState.tag_list, MediaTagList.filter(F.action == None))
 async def content_media_list(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
     logger.debug("content_tag")
+
+    tag = callback_data.tag
+    if await is_module_has_dirs(tag):
+        await show_tag_list(callback, state, tag)
+        return
 
     await show_media_info(callback, callback_data, state)
 
@@ -86,7 +94,7 @@ async def show_media_info(callback: CallbackQuery, callback_data: MediaTagList, 
     if len(media) == 0:
         keyboard = get_media_empty_keyboard(tag)
         await callback.message.edit_text(
-            text=t('admin.content.empty'),
+            text=t('admin.content.empty', tag=tag),
             reply_markup=keyboard,
         )
         await callback.answer()
@@ -150,8 +158,6 @@ async def content_add_result(message: Message, bot: Bot, state: FSMContext):
     logger.debug("content_add_result")
 
     tag = await state.get_value('tag')
-    if tag not in await get_media_dirs():
-        await add_module_dir(tag)
 
     document = message.document or message.photo[-1] or message.video
 
