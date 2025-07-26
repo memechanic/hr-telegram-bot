@@ -124,7 +124,7 @@ async def get_media_by_id(media_id: int) -> Media:
     return result[0]
 
 async def get_media_input_files(tag: str) -> Dict[str, List[FSInputFile]] | None:
-    logger.debug("send_media")
+    logger.debug("get_media_input_files")
 
     media = await get_media_by_tag(tag)
     photos_raw = list(filter(lambda p: p.type.startswith('image'), media))
