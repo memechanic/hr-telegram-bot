@@ -1,11 +1,12 @@
 import logging
+from typing import List
 
 from aiogram import Router, F, Bot
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram.types import Message, CallbackQuery, FSInputFile, PhotoSize
 
 from keyboards.content import get_tag_keyboard, main_content_keyboard, back_content_keyboard, get_media_list_keyboard, \
     get_delete_keyboard, get_media_empty_keyboard
@@ -191,7 +192,10 @@ async def content_add_result(message: Message, bot: Bot, state: FSMContext):
 
     tag = await state.get_value('tag')
 
-    document = message.document or message.photo[-1] or message.video
+    document = message.document or message.photo or message.video
+
+    if document is List[PhotoSize]:
+        document = document[-1]
 
     result = await add_media_document(document, tag, bot)
 
