@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher, Router
 
 from app.commands import COMMANDS
 from config_reader import config
-from handlers import auth, support, info, modular_info
+from handlers import auth, support, info, docs
 from handlers.admin import users, content
 from locales.loader import reload_locale
 from middlewares import CheckUserMiddleware
