@@ -64,8 +64,12 @@ def get_delete_keyboard(tag:str, number: int, media_id: int) -> InlineKeyboardMa
 
 async def get_tag_keyboard(module: str = None) -> InlineKeyboardMarkup:
     buttons = await get_media_dirs(module)
+    data = {}
 
-    data = {'main': t('admin.content.buttons.back'),}
+    if module is not None:
+        data.update({MediaTagList(tag=module, action='add_chapter').pack(): t('admin.content.buttons.add_chapter')})
+
+    data.update({'main': t('admin.content.buttons.back'), })
     for b in buttons:
         if module is None:
             data.update({MediaTagList(tag=b).pack(): b})
@@ -73,7 +77,12 @@ async def get_tag_keyboard(module: str = None) -> InlineKeyboardMarkup:
             tag = f"{module}.{b}"
             data.update({MediaTagList(tag=tag).pack(): b})
 
+
     adjust = [1] + [2 for _ in range(len(buttons))]
+
+    if module is not None:
+        adjust = [1] + adjust
+
     keyboard = get_inline_keyboard(
         data=data,
         resize_keyboard=True,

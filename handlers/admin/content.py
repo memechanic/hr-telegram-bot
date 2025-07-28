@@ -11,7 +11,8 @@ from keyboards.content import get_tag_keyboard, main_content_keyboard, back_cont
     get_delete_keyboard, get_media_empty_keyboard
 from locales.loader import t
 from service.callback_data_factory import MediaTagList
-from service.media import add_media_document, get_media_by_tag, get_media_dict, delete_media_by_id, is_module_has_dirs
+from service.media import add_media_document, get_media_by_tag, get_media_dict, delete_media_by_id, is_module_has_dirs, \
+    add_module_dir
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +22,7 @@ class ContentState(StatesGroup):
     main = State()
     info = State()
     tag_list = State()
+    add_chapter = State()
     media_list = State()
     add = State()
     delete = State()
@@ -75,6 +77,36 @@ async def show_tag_list(callback: CallbackQuery, state: FSMContext, module: str 
     await callback.message.edit_text(text=t('admin.content.tag_list'), )
     await callback.message.edit_reply_markup(reply_markup=keyboard)
     await callback.answer()
+
+@router.callback_query(ContentState.tag_list, MediaTagList.filter((F.action == 'add_chapter')))
+async def add_chapter(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
+    logger.debug("add_chapter")
+
+    tag = callback_data.tag
+    await state.set_state(ContentState.add_chapter)
+    await state.update_data(chapter_module=tag)
+    await callback.message.answer(text=t('admin.content.add_chapter', module=tag))
+    await callback.answer()
+
+@router.message(ContentState.add_chapter, F.text)
+async def add_chapter_result(message: Message, state: FSMContext):
+    logger.debug("add_chapter_result")
+
+    text = message.text
+    if text == '.':
+        await message.delete()
+        await state.clear()
+        return
+
+    tag = await state.get_value('chapter_module')
+    new_chapter = tag + '.' + text[0].upper() + text[1:].lower()
+
+    result = await add_module_dir(new_chapter)
+    if result:
+        await message.answer(text=t('admin.content.add_chapter_success'))
+        await state.clear()
+    else:
+        await message.answer(text=t('admin.content.error'))
 
 @router.callback_query(ContentState.tag_list, MediaTagList.filter(F.action == None))
 async def content_media_list(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
