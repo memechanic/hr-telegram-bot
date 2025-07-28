@@ -30,7 +30,7 @@ async def company(message: Message):
             album.add_document(file)
         await message.answer_media_group(media=album.build())
 
-    if not (files['video'] and files['photos'] and files['applications']):
+    if not (files['videos'] and files['photos'] and files['applications']):
         await message.answer(text=t('info.company.text'))
 
 @router.message(Command('cafeteria'))

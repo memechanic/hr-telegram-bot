@@ -3,12 +3,11 @@ from aiogram.types import ReplyKeyboardRemove
 
 from keyboards.keyboard_builder import get_inline_keyboard
 from locales.loader import t
-from service.callback_data_factory import MediaTagList
 from service.media import get_media_dirs
 
 remove_keyboard = ReplyKeyboardRemove()
 
-async def get_docs_keyboard():
+async def get_docs_keyboard() -> InlineKeyboardMarkup:
     data = {}
 
     buttons = await get_media_dirs('docs')

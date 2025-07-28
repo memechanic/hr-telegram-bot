@@ -5,8 +5,7 @@ from aiogram import Router, F
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, CallbackQuery, MessageAutoDeleteTimerChanged
-from aiogram.utils.media_group import MediaGroupBuilder
+from aiogram.types import Message, CallbackQuery
 
 from keyboards.docs import get_docs_keyboard, doc_back_keyboard
 from locales.loader import t
@@ -47,9 +46,14 @@ async def docs_choice(callback: CallbackQuery, state: FSMContext):
             msg = await callback.message.answer_document(document=file)
             docs_msg.append(msg)
 
+    else:
+        msg = await callback.message.answer(text=t('info.docs.file_empty'))
+        docs_msg.append(msg)
+
     await state.set_state(DocState.choice)
     await state.update_data(docs_msg=docs_msg)
     await callback.message.edit_reply_markup(reply_markup=doc_back_keyboard)
+    await callback.answer()
 
 @router.callback_query(DocState.choice, F.data == "main")
 async def docs_back(callback: CallbackQuery, state: FSMContext):
@@ -63,3 +67,4 @@ async def docs_back(callback: CallbackQuery, state: FSMContext):
     await state.set_state(DocState.main)
     keyboard = await get_docs_keyboard()
     await callback.message.edit_reply_markup(reply_markup=keyboard)
+    await callback.answer()
