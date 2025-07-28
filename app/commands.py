@@ -10,6 +10,7 @@ USER_COMMANDS = COMMANDS + [
     BotCommand(command="cafeteria", description=t("service.commands.cafeteria")),
     BotCommand(command="structure", description=t("service.commands.structure")),
     BotCommand(command="docs", description=t("service.commands.docs")),
+    BotCommand(command="vtours", description=t("service.commands.vtours")),
 ]
 
 ADMIN_COMMANDS = USER_COMMANDS + [
