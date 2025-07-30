@@ -1,7 +1,7 @@
 """resize Media.type
 
 Revision ID: 3eb67a860c3d
-Revises: bef1e454e163
+Revises: 2a8457478d8a
 Create Date: 2025-07-24 20:53:02.658030
 
 """
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '3eb67a860c3d'
-down_revision: Union[str, Sequence[str], None] = 'bef1e454e163'
+down_revision: Union[str, Sequence[str], None] = '2a8457478d8a'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
