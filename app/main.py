@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher, Router
 from app.commands import COMMANDS
 from config_reader import config
 from handlers import auth, support, info, docs, vtours
-from handlers.admin import users, content
+from handlers.admin import users, content, admin_help
 from locales.loader import reload_locale
 from middlewares import CheckUserMiddleware
 
@@ -37,6 +37,7 @@ async def main():
     admin_router = Router()
     admin_router.include_router(users.router)
     admin_router.include_router(content.router)
+    admin_router.include_router(admin_help.router)
 
     admin_router.message.middleware(CheckUserMiddleware("admin"))
 
