@@ -185,7 +185,8 @@ async def content_add(callback: CallbackQuery, callback_data: MediaTagList, stat
     tag = callback_data.tag
     await state.set_state(ContentState.add)
     await state.update_data(tag=tag)
-    await callback.message.answer(text=t('admin.content.add', tag=tag))
+    add_media_msg = await callback.message.answer(text=t('admin.content.add', tag=tag))
+    await state.update_data(add_media_msg=add_media_msg)
 
     await callback.answer()
 
@@ -212,11 +213,10 @@ async def content_add_result(message: Message, bot: Bot, state: FSMContext):
 async def content_add_cancel(message: Message, state: FSMContext):
     logger.debug("content_add_cancel")
 
-    await state.set_state(ContentState.main)
-    await message.answer(
-        text=t('admin.content.main'),
-        reply_markup=main_content_keyboard,
-    )
+    await state.set_state(ContentState.tag_list)
+    await message.delete()
+    add_media_msg = await state.get_value('add_media_msg')
+    await add_media_msg.delete()
 
 @router.callback_query(ContentState.tag_list, MediaTagList.filter(F.action == "delete"))
 async def content_delete(callback: CallbackQuery, callback_data: MediaTagList, state: FSMContext):
