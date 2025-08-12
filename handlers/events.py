@@ -36,7 +36,7 @@ async def corp_events_turn(callback: CallbackQuery, state: FSMContext):
 
     turn = int(callback.data)
     page = await state.get_value('page')
-    corp_events = await get_corp_events()
+    corp_events = await state.get_value('corp_events')
 
     page += turn
     if page < 0 or page > len(corp_events) - 1:
