@@ -86,7 +86,8 @@ async def add_chapter(callback: CallbackQuery, callback_data: MediaTagList, stat
     tag = callback_data.tag
     await state.set_state(ContentState.add_chapter)
     await state.update_data(chapter_module=tag)
-    await callback.message.answer(text=t('admin.content.add_chapter', module=tag))
+    add_chapter_msg = await callback.message.answer(text=t('admin.content.add_chapter', module=tag))
+    await state.update_data(add_chapter_msg=add_chapter_msg)
     await callback.answer()
 
 @router.message(ContentState.add_chapter, F.text)
@@ -96,7 +97,9 @@ async def add_chapter_result(message: Message, state: FSMContext):
     text = message.text
     if text == '.':
         await message.delete()
-        await state.clear()
+        add_chapter_msg = await state.get_value('add_chapter_msg')
+        await add_chapter_msg.delete()
+        await state.set_state(ContentState.tag_list)
         return
 
     tag = await state.get_value('chapter_module')
