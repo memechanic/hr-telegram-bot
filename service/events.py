@@ -27,8 +27,25 @@ async def validate_datetime(string_time: str) -> datetime | None:
     else:
         return dt
 
+async def get_all_events() -> List[Dict]:
+    logger.debug(f"get_all_events")
+    events = []
+    result = await get_events(True)
+    for e in result:
+        event_data = {
+            "id": e.id,
+            "event_type": e.type,
+            "title": e.title,
+            "description": e.description,
+            "address": e.address,
+            "start_time": e.start_time,
+            "end_time": e.end_time,
+        }
+        events.append(event_data)
+    return events
+
 async def get_corp_events() -> List[Dict]:
-    logger.debug(f"get_events")
+    logger.debug(f"get_corp_events")
     events = []
     w = Event.type == EventTypeEnum.event
     result = await get_events(w)

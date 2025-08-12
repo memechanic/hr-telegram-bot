@@ -9,8 +9,8 @@ from aiogram.types import Message, CallbackQuery
 from locales.loader import t
 from keyboards.manage_events import events_main_keyboard, get_events_list_keyboard, events_back_keyboard, event_type_keyboard, \
     remove_keyboard, events_skip_keyboard, events_accept_keyboard, get_event_delete_keyboard
-from service.events import get_corp_events, EVENTS_TYPE_LABELS, validate_datetime, add_corp_event, EVENTS_TYPES, \
-    delete_event_by_id
+from service.events import EVENTS_TYPE_LABELS, validate_datetime, add_corp_event, EVENTS_TYPES, \
+    delete_event_by_id, get_all_events
 from service.callback_data_factory import EventsManagerButton
 
 router = Router()
@@ -80,7 +80,7 @@ async def turn_events_list(callback: CallbackQuery, callback_data: EventsManager
 async def show_event_info(callback: CallbackQuery, state: FSMContext):
     logger.debug("show_event_info")
 
-    events = await get_corp_events()
+    events = await get_all_events()
     page = await state.get_value('page')
     if page is None or page > len(events)-1 or page < 0:
         page = 0
