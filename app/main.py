@@ -6,7 +6,7 @@ from aiogram import Bot, Dispatcher, Router
 from app.commands import COMMANDS
 from app.middlewares import CheckUserMiddleware
 from config_reader import config
-from handlers import auth, support, info, docs, vtours
+from handlers import auth, support, info, docs, vtours, events
 from handlers.admin import users, content, admin_help, manage_events
 from locales.loader import reload_locale
 
@@ -30,6 +30,7 @@ async def main():
     users_router.include_router(info.router)
     users_router.include_router(docs.router)
     users_router.include_router(vtours.router)
+    users_router.include_router(events.router)
 
     users_router.message.middleware(CheckUserMiddleware("user"))
 

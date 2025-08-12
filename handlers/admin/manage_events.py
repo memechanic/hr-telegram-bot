@@ -7,7 +7,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 
 from locales.loader import t
-from keyboards.events import events_main_keyboard, get_events_list_keyboard, events_back_keyboard, event_type_keyboard, \
+from keyboards.manage_events import events_main_keyboard, get_events_list_keyboard, events_back_keyboard, event_type_keyboard, \
     remove_keyboard, events_skip_keyboard, events_accept_keyboard, get_event_delete_keyboard
 from service.events import get_corp_events, EVENTS_TYPE_LABELS, validate_datetime, add_corp_event, EVENTS_TYPES, \
     delete_event_by_id
