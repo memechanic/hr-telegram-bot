@@ -71,3 +71,22 @@ class Media(Base):
 
     def __str__(self):
         return f"{self.filename}({self.file_id})\ntag:{self.tag}\npath:{self.path}\nsource_type:{self.source_type}"
+
+class EventTypeEnum(PyEnum):
+    event = "event"
+    excursion = "excursion"
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    type: Mapped[EventTypeEnum] = mapped_column(nullable=False, index=True)
+
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+
+    description: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+
+    address: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
+
+    start_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    end_time: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

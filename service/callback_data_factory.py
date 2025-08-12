@@ -8,6 +8,11 @@ class MediaTagList(CallbackData, prefix="mtl"):
     action: Optional[str] = None
     id: Optional[int] = None
 
+class EventsManagerButton(CallbackData, prefix="emb"):
+    action: str
+    turn_val: Optional[int] = None
+    event_id: Optional[int] = -1
+
 # Для будущего изменения в handlers.admin.users при обработке запросов
 # from enum import Enum
 # class RequestAction(str, Enum):

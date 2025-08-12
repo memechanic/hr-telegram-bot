@@ -16,4 +16,5 @@ USER_COMMANDS = COMMANDS + [
 ADMIN_COMMANDS = USER_COMMANDS + [
     BotCommand(command="link", description=t("service.commands.link")),
     BotCommand(command="content", description=t("service.commands.content")),
+    BotCommand(command="manage_events", description=t("service.commands.manage_events")),
 ]
